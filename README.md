@@ -54,6 +54,7 @@ To run the recommender system locally, download the file using:
 ```bash
 - pip install gdown
 - python download_model.py
+```
 
 ---
 
