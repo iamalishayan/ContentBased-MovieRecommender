@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font */
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8; /* Lighter background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: center;
+        }
+        /* Custom dropdown styling */
+        .suggestions-container {
+            position: relative; /* For positioning the dropdown */
+            width: 100%;
+        }
+        #suggestions {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            position: absolute;
+            width: 100%; /* Match input width */
+            background: white;
+            border: 1px solid #e2e8f0; /* Light border */
+            border-radius: 0 0 8px 8px; /* Rounded bottom corners */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            top: 100%; /* Position below the input */
+            left: 0;
+        }
+
+        #suggestions li {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f4f8; /* Separator for items */
+        }
+
+        #suggestions li:last-child {
+            border-bottom: none;
+        }
+
+        #suggestions li:hover {
+            background-color: #e2e8f0; /* Hover background */
+        }
+    </style>
+</head>
+<body class="p-4">
+
+<h1 class="text-4xl font-extrabold text-gray-800 mb-8">Movie Recommender System</h1>
+
+<div class="container bg-white p-8 rounded-xl shadow-lg w-full max-w-md mx-auto">
+    <div class="suggestions-container mb-4">
+        <input type="text" id="movieInput" placeholder="Enter a movie title" onkeyup="getMovieSuggestions()"
+               class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <ul id="suggestions"></ul> <!-- Custom dropdown for movie suggestions -->
+    </div>
+    <button onclick="getRecommendations()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+        Get Recommendations
+    </button>
+
+    <ul id="recommendations" class="recommendations mt-6 space-y-3"></ul>
+</div>
+
+<script>
+    // Function to fetch movie suggestions based on user input
+    function getMovieSuggestions() {
+        const input = document.getElementById('movieInput').value;
+        const suggestionsList = document.getElementById('suggestions');
+
+        // Clear previous suggestions if input is empty or too short
+        if (input.length < 2) {
+            suggestionsList.innerHTML = '';
+            return;
+        }
+
+        // Fetch suggestions from the Flask backend
+        fetch(`/get_movie_suggestions?query=${encodeURIComponent(input)}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsList.innerHTML = ''; // Clear previous suggestions
+
+                if (data.suggestions && data.suggestions.length > 0) {
+                    data.suggestions.forEach(title => {
+                        const li = document.createElement('li');
+                        li.textContent = title;
+                        li.onclick = () => selectMovie(title); // When a movie is selected
+                        suggestionsList.appendChild(li);
+                    });
+                } else {
+                    // Optional: Display a "No suggestions" message
+                    const li = document.createElement('li');
+                    li.textContent = 'No suggestions found.';
+                    li.className = 'text-gray-500 italic';
+                    suggestionsList.appendChild(li);
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching movie suggestions:', err);
+                suggestionsList.innerHTML = ''; // Clear suggestions on error
+            });
+    }
+
+    // Function to handle the selection of a movie from the dropdown
+    function selectMovie(title) {
+        document.getElementById('movieInput').value = title;
+        document.getElementById('suggestions').innerHTML = ''; // Clear suggestions after selection
+    }
+
+    // Function to fetch recommendations based on selected movie
+    function getRecommendations() {
+        const movie = document.getElementById('movieInput').value;
+        const recommendationsList = document.getElementById('recommendations');
+        recommendationsList.innerHTML = ''; // Clear previous recommendations
+
+        if (!movie) {
+            recommendationsList.innerHTML = '<li class="bg-red-100 text-red-700 p-3 rounded-lg">Please enter a movie title.</li>';
+            return;
+        }
+
+        fetch(`/recommend?movie=${encodeURIComponent(movie)}`)
+            .then(response => response.json())
+            .then(data => {
+                // Check if the API returned recommendations
+                if (data.recommendations && data.recommendations.length > 0) {
+                    data.recommendations.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = item; // Add movie title to the list
+                        li.className = 'bg-blue-100 text-blue-800 p-3 rounded-lg shadow-sm';
+                        recommendationsList.appendChild(li);
+                    });
+                } else if (data.error) {
+                    // If an error message is returned
+                    const li = document.createElement('li');
+                    li.textContent = data.error;
+                    li.className = 'bg-red-100 text-red-700 p-3 rounded-lg';
+                    recommendationsList.appendChild(li);
+                } else {
+                    // Generic no recommendations message
+                    const li = document.createElement('li');
+                    li.textContent = 'No recommendations found for this movie.';
+                    li.className = 'bg-gray-100 text-gray-700 p-3 rounded-lg';
+                    recommendationsList.appendChild(li);
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching recommendations:', err);
+                const li = document.createElement('li');
+                li.textContent = 'Something went wrong while fetching recommendations. Please try again.';
+                li.className = 'bg-red-100 text-red-700 p-3 rounded-lg';
+                recommendationsList.appendChild(li);
+            });
+    }
+</script>
+
+</body>
+</html>
