@@ -29,7 +29,7 @@ This is a simple **Movie Recommender System** that suggests similar movies based
 
 - Extracted important text-based features.
 - Combined them into a single string representation for each movie.
-- Vectorized text using **CountVectorizer**.
+- Vectorized text using **TfidfVectorizer**.
 - Computed **cosine similarity** between all movies.
 - Given a movie, returned the top 5 most similar ones.
 
