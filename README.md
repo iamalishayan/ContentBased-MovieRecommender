@@ -45,7 +45,7 @@ This is a simple **Movie Recommender System** that suggests similar movies based
 
 ---
 
-## 📥 Downloading the Model File
+## Downloading the Model File
 
 The `similarity.pkl` file is too large to include in the repo.
 
@@ -58,7 +58,7 @@ To run the recommender system locally, download the file using:
 
 ---
 
-## 🧠 Author
+## Author
 
 - **Ali Shayan** – [GitHub Profile](https://github.com/iamalishayan)
 
